@@ -1,40 +1,44 @@
 package com.treyhutson.gym_occupancy.model;
 
-public class Facility {
-    private String facilityName;
-    private int currentCount;
-    private int maxCapacity;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    // Default constructor (needed for Jackson / RestTemplate)
+public class Facility {
+
+    @JsonProperty("LocationName")
+    private String locationName;
+
+    @JsonProperty("LastCount")
+    private int lastCount;
+
+    @JsonProperty("TotalCapacity")
+    private int totalCapacity;
+
+    @JsonProperty("LastUpdatedDateAndTime")
+    private String lastUpdated;
+
+    @JsonProperty("IsClosed")
+    private boolean isClosed;
+
     public Facility() {}
 
     // Getters and setters
-    public String getFacilityName() {
-        return facilityName;
-    }
+    public String getLocationName() { return locationName; }
+    public void setLocationName(String locationName) { this.locationName = locationName; }
 
-    public void setFacilityName(String facilityName) {
-        this.facilityName = facilityName;
-    }
+    public int getLastCount() { return lastCount; }
+    public void setLastCount(int lastCount) { this.lastCount = lastCount; }
 
-    public int getCurrentCount() {
-        return currentCount;
-    }
+    public int getTotalCapacity() { return totalCapacity; }
+    public void setTotalCapacity(int totalCapacity) { this.totalCapacity = totalCapacity; }
 
-    public void setCurrentCount(int currentCount) {
-        this.currentCount = currentCount;
-    }
+    public String getLastUpdated() { return lastUpdated; }
+    public void setLastUpdated(String lastUpdated) { this.lastUpdated = lastUpdated; }
 
-    public int getMaxCapacity() {
-        return maxCapacity;
-    }
-
-    public void setMaxCapacity(int maxCapacity) {
-        this.maxCapacity = maxCapacity;
-    }
+    public boolean isClosed() { return isClosed; }
+    public void setClosed(boolean closed) { isClosed = closed; }
 
     @Override
     public String toString() {
-        return facilityName + ": " + currentCount + "/" + maxCapacity;
+        return locationName + ": " + lastCount + "/" + totalCapacity + (isClosed ? " (Closed)" : "");
     }
 }
