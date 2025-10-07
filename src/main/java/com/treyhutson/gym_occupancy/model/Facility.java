@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Facility {
 
+    @JsonProperty("FacilityName")
+    private String facilityName;
+
     @JsonProperty("LocationName")
     private String locationName;
 
@@ -22,6 +25,9 @@ public class Facility {
     public Facility() {}
 
     // Getters and setters
+    public String getFacilityName() { return facilityName; }
+    public void setFacilityName(String facilityName) { this.facilityName = locationName; }
+
     public String getLocationName() { return locationName; }
     public void setLocationName(String locationName) { this.locationName = locationName; }
 
@@ -39,6 +45,6 @@ public class Facility {
 
     @Override
     public String toString() {
-        return locationName + ": " + lastCount + "/" + totalCapacity + (isClosed ? " (Closed)" : "");
+        return locationName + "(" + facilityName + ")" + ": " + lastCount + "/" + totalCapacity + (isClosed ? " (Closed)" : "");
     }
 }
