@@ -37,6 +37,7 @@ public class OccupancyScheduler {
 
     public FacilityCount toEntity(Facility facility) {
         FacilityCount entity = new FacilityCount();
+        entity.setFacilityName(facility.getFacilityName());
         entity.setLocationName(facility.getLocationName());
         entity.setTotalCapacity(facility.getTotalCapacity());
         entity.setLastCount(facility.getLastCount());
