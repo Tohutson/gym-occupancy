@@ -24,7 +24,7 @@ public class OccupancyScheduler {
         this.repository = repository;
     }
 
-    @Scheduled(fixedRate = 300_000) // every 5 minutes
+    @Scheduled(fixedRate = 600_000) // every 10 minutes
     public void fetchAndStoreOccupancy() {
         List<Facility> facilities = facilityOccupancyService.fetchOccupancyData();
 
