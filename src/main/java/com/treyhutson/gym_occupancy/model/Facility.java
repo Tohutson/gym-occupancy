@@ -26,7 +26,7 @@ public class Facility {
 
     // Getters and setters
     public String getFacilityName() { return facilityName; }
-    public void setFacilityName(String facilityName) { this.facilityName = locationName; }
+    public void setFacilityName(String facilityName) { this.facilityName = facilityName; }
 
     public String getLocationName() { return locationName; }
     public void setLocationName(String locationName) { this.locationName = locationName; }
