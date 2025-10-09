@@ -1,23 +1,42 @@
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useState } from "react";
 
 function App() {
+  const [facilities, setFacilities] = useState([]);
+
+  // Runs once after component loads
+  useEffect(() => {
+    fetch("http://localhost:8080/api/facilities")
+      .then((res) => res.json())
+      .then((data) => setFacilities(data))
+      .catch((err) => console.error("Error fetching data:", err));
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div style={{ padding: "2rem" }}>
+      <h1>🏋️ Pitt Gym Occupancy Dashboard</h1>
+
+      <table border="1" cellPadding="8">
+        <thead>
+          <tr>
+            <th>Facility</th>
+            <th>Location</th>
+            <th>Current Count</th>
+            <th>Capacity</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          {facilities.map((f) => (
+            <tr key={f.id}>
+              <td>{f.facilityName}</td>
+              <td>{f.locationName}</td>
+              <td>{f.lastCount}</td>
+              <td>{f.totalCapacity}</td>
+              <td>{new Date(f.lastUpdatedDateAndTime).toLocaleString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
