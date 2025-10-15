@@ -30,7 +30,15 @@ public class OccupancyScheduler {
 
         facilities.forEach(f -> {
             FacilityCount entity = toEntity(f);
-            repository.save(entity); // Save historical record
+            repository.insertIgnoreDuplicates(
+                    entity.getFacilityName(),
+                    entity.getLocationName(),
+                    entity.getTotalCapacity(),
+                    entity.getLastCount(),
+                    entity.isClosed(),
+                    entity.getLastUpdatedDateAndTime(),
+                    entity.getRecordedAt()
+            );
             System.out.println("[" + f.getLastUpdated() + "] Saved: " + f);
         });
     }
