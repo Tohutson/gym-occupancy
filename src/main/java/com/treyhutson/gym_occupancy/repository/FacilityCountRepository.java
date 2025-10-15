@@ -29,7 +29,7 @@ public interface FacilityCountRepository extends JpaRepository<FacilityCount, Lo
         INSERT INTO facility_counts 
             (facility_name, location_name, total_capacity, last_count, is_closed, last_updated_date_and_time, recorded_at)
         VALUES 
-            (:facilityName, :locationName, :totalCapacity, :lastCount, :isClosed, :lastUpdated, :recordedAt)
+            (:facilityName, :locationName, :totalCapacity, :lastCount, :isClosed, :lastUpdatedDateAndTime, :recordedAt)
         ON CONFLICT (location_name, last_updated_date_and_time) DO NOTHING
         """, nativeQuery = true)
     void insertIgnoreDuplicates(
