@@ -5,6 +5,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -22,15 +23,22 @@ public interface FacilityCountRepository extends JpaRepository<FacilityCount, Lo
         """)
     List<FacilityCount> findLatestPerFacility();
 
-    @Modifying
     @Transactional
+    @Modifying
     @Query(value = """
-        INSERT INTO facility_counts
-        (facility_name, location_name, total_capacity, last_count, is_closed, last_updated_date_and_time, recorded_at)
-        VALUES (:facilityName, :locationName, :totalCapacity, :lastCount, :isClosed, :lastUpdatedDateAndTime, :recordedAt)
+        INSERT INTO facility_counts 
+            (facility_name, location_name, total_capacity, last_count, is_closed, last_updated_date_and_time, recorded_at)
+        VALUES 
+            (:facilityName, :locationName, :totalCapacity, :lastCount, :isClosed, :lastUpdated, :recordedAt)
         ON CONFLICT (location_name, last_updated_date_and_time) DO NOTHING
         """, nativeQuery = true)
-    void insertIgnoreDuplicates(String facilityName, String locationName, int totalCapacity,
-                                int lastCount, boolean isClosed, LocalDateTime lastUpdatedDateAndTime,
-                                LocalDateTime recordedAt);
+    void insertIgnoreDuplicates(
+            @Param("facilityName") String facilityName,
+            @Param("locationName") String locationName,
+            @Param("totalCapacity") int totalCapacity,
+            @Param("lastCount") int lastCount,
+            @Param("isClosed") boolean isClosed,
+            @Param("lastUpdatedDateAndTime") LocalDateTime lastUpdatedDateAndTime,
+            @Param("recordedAt") LocalDateTime recordedAt
+    );
 }
