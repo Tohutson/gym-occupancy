@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import OccupancyChart from "./OccupancyChart";
 
 function App() {
   const [facilities, setFacilities] = useState([]);
@@ -7,36 +8,21 @@ function App() {
   useEffect(() => {
     fetch("http://localhost:8080/api/facilities")
       .then((res) => res.json())
-      .then((data) => setFacilities(data))
-      .catch((err) => console.error("Error fetching data:", err));
+      .then((facilities) => {
+        // Convert timestamps into readable times for the X-axis
+        const formatted = facilities.map((d) => ({
+          time: new Date(d.lastUpdatedDateAndTime).toLocaleTimeString(),
+          count: d.lastCount,
+        }));
+        setFacilities(formatted);
+      })
+      .catch((err) => console.error(err));
   }, []);
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>🏋️ Pitt Gym Occupancy Dashboard</h1>
-
-      <table border="1" cellPadding="8">
-        <thead>
-          <tr>
-            <th>Facility</th>
-            <th>Location</th>
-            <th>Current Count</th>
-            <th>Capacity</th>
-            <th>Updated</th>
-          </tr>
-        </thead>
-        <tbody>
-          {facilities.map((f) => (
-            <tr key={f.id}>
-              <td>{f.facilityName}</td>
-              <td>{f.locationName}</td>
-              <td>{f.lastCount}</td>
-              <td>{f.totalCapacity}</td>
-              <td>{new Date(f.lastUpdatedDateAndTime).toLocaleString()}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div>
+      <h2>Real-Time Gym Occupancy</h2>
+      <OccupancyChart data={facilities} />
     </div>
   );
 }
