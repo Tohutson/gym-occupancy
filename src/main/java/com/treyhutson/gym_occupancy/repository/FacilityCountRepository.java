@@ -41,4 +41,6 @@ public interface FacilityCountRepository extends JpaRepository<FacilityCount, Lo
             @Param("lastUpdatedDateAndTime") LocalDateTime lastUpdatedDateAndTime,
             @Param("recordedAt") LocalDateTime recordedAt
     );
+
+    List<FacilityCount> findByLocationName(String locationName);
 }

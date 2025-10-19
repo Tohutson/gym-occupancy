@@ -16,10 +16,14 @@ public class FacilityCountController {
         this.repository = repository;
     }
 
-    // GET all records
+    // GET all records or filter by locationName if provided
     @GetMapping
-    public List<FacilityCount> getAll() {
-        return repository.findAll();
+    public List<FacilityCount> getAll(@RequestParam(required = false) String locationName) {
+        if (locationName != null && !locationName.isEmpty()) {
+            return repository.findByLocationName(locationName);
+        } else {
+            return repository.findAll();
+        }
     }
 
     // GET the latest record for each facility
@@ -27,4 +31,6 @@ public class FacilityCountController {
     public List<FacilityCount> getLatest() {
         return repository.findLatestPerFacility();
     }
+
+
 }
