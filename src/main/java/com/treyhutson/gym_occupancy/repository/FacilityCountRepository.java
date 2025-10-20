@@ -42,5 +42,15 @@ public interface FacilityCountRepository extends JpaRepository<FacilityCount, Lo
             @Param("recordedAt") LocalDateTime recordedAt
     );
 
-    List<FacilityCount> findByLocationName(String locationName);
-}
+    @Query("""
+    SELECT fc FROM FacilityCount fc
+    WHERE (:locationName IS NULL OR fc.locationName = :locationName)
+    AND (:startDate IS NULL OR fc.lastUpdatedDateAndTime >= :startDate)
+    AND (:endDate IS NULL OR fc.lastUpdatedDateAndTime <= :endDate)
+    ORDER BY fc.lastUpdatedDateAndTime
+    """)
+    List<FacilityCount> findByFilters(
+            @Param("locationName") String locationName,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );}
