@@ -14,6 +14,10 @@ public class FacilityDataService {
         this.repository = repository;
     }
 
+    public List<FacilityCount> getLatestPerFacility() {
+        return repository.findLatestPerFacility();
+    }
+
     public List<FacilityCount> getFiltered(String locationName, LocalDateTime start, LocalDateTime end) {
         if (start == null && end == null && locationName == null) {
             return repository.findAll();

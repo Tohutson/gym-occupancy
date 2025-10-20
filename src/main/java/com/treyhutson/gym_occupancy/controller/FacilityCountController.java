@@ -13,11 +13,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/facilities")
 public class FacilityCountController {
-    private final FacilityCountRepository repository;
     private final FacilityDataService facilityDataService;
 
     public FacilityCountController(FacilityCountRepository repository, FacilityDataService facilityDataService) {
-        this.repository = repository;
         this.facilityDataService = facilityDataService;
     }
 
@@ -34,7 +32,7 @@ public class FacilityCountController {
     // GET the latest record for each facility
     @GetMapping("/latest")
     public List<FacilityCount> getLatest() {
-        return repository.findLatestPerFacility();
+        return facilityDataService.getLatestPerFacility();
     }
 
 
