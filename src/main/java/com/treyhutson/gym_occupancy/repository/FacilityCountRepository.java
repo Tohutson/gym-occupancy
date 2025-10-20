@@ -42,15 +42,18 @@ public interface FacilityCountRepository extends JpaRepository<FacilityCount, Lo
             @Param("recordedAt") LocalDateTime recordedAt
     );
 
-    @Query("""
-    SELECT fc FROM FacilityCount fc
-    WHERE (:locationName IS NULL OR fc.locationName = :locationName)
-    AND (:startDate IS NULL OR fc.lastUpdatedDateAndTime >= :startDate)
-    AND (:endDate IS NULL OR fc.lastUpdatedDateAndTime <= :endDate)
-    ORDER BY fc.lastUpdatedDateAndTime
-    """)
-    List<FacilityCount> findByFilters(
+    // Get all records between two dates
+    @Query("SELECT fc FROM FacilityCount fc WHERE fc.lastUpdatedDateAndTime >= :start AND fc.lastUpdatedDateAndTime <= :end ORDER BY fc.lastUpdatedDateAndTime")
+    List<FacilityCount> findBetweenDates(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
+
+    // Get all records for a location between two dates
+    @Query("SELECT fc FROM FacilityCount fc WHERE fc.locationName = :locationName AND fc.lastUpdatedDateAndTime >= :start AND fc.lastUpdatedDateAndTime <= :end ORDER BY fc.lastUpdatedDateAndTime")
+    List<FacilityCount> findByLocationAndDateRange(
             @Param("locationName") String locationName,
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate
-    );}
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
+}
