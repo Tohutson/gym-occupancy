@@ -2,7 +2,6 @@ package com.treyhutson.gym_occupancy.service;
 
 import com.treyhutson.gym_occupancy.model.FacilityCount;
 import com.treyhutson.gym_occupancy.repository.FacilityCountRepository;
-import com.treyhutson.gym_occupancy.service.FacilityOccupancyService;
 import com.treyhutson.gym_occupancy.model.Facility;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -15,10 +14,10 @@ import java.time.format.DateTimeFormatter;
 @Component
 public class OccupancyScheduler {
 
-    private final FacilityOccupancyService facilityOccupancyService;
+    private final ExternalFacilityService facilityOccupancyService;
     private final FacilityCountRepository repository;
 
-    public OccupancyScheduler(FacilityOccupancyService facilityOccupancyService,
+    public OccupancyScheduler(ExternalFacilityService facilityOccupancyService,
                               FacilityCountRepository repository) {
         this.facilityOccupancyService = facilityOccupancyService;
         this.repository = repository;
