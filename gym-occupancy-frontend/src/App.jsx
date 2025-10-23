@@ -5,7 +5,13 @@ function App() {
   const [facilities, setFacilities] = useState([]);
   const [locations, setLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState("");
-  const [selectedDate, setSelectedDate] = useState(""); // YYYY-MM-DD
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`; // "2025-10-22"
+  });
 
   // Fetch all facilities once to populate dropdown
   useEffect(() => {
@@ -14,6 +20,10 @@ function App() {
       .then((data) => {
         const uniqueLocations = [...new Set(data.map((d) => d.locationName))];
         setLocations(uniqueLocations);
+
+        if (uniqueLocations.length > 0 && !selectedLocation) {
+          setSelectedLocation("RWC Floor 2");
+        }
       })
       .catch((err) => console.error("Error fetching locations:", err));
   }, []);
