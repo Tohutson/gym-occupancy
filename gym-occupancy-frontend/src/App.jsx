@@ -41,7 +41,9 @@ function App() {
     const endStr = end.toISOString().slice(0, 19);
 
     fetch(
-      `http://localhost:8080/api/facilities?locationName=${encodeURIComponent(selectedLocation)}&start=${startStr}&end=${endStr}`
+      `http://localhost:8080/api/facilities?locationName=${encodeURIComponent(
+        selectedLocation
+      )}&start=${startStr}&end=${endStr}`
     )
       .then((res) => res.json())
       .then((data) => {
@@ -96,11 +98,10 @@ function App() {
         />
       </div>
 
-      {/* Chart */}
-      {selectedLocation && selectedDate ? (
+      {facilities.length > 0 ? (
         <OccupancyChart data={facilities} />
       ) : (
-        <p>Please select a facility and a date to view occupancy.</p>
+        <p>Loading occupancy data...</p>
       )}
     </div>
   );
