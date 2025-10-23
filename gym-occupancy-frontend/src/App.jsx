@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import OccupancyChart from "./OccupancyChart";
+import LatestCountTable from "./LatestCountTable";
 
 function App() {
   const [facilities, setFacilities] = useState([]);
@@ -66,6 +67,10 @@ function App() {
     <div style={{ padding: "20px", fontFamily: "sans-serif" }}>
       <h2>Real-Time Gym Occupancy</h2>
 
+      {facilities.length > 0 ? (
+        <LatestCountTable onSelectLocation={(loc) => setSelectedLocation(loc)} />      ) : (
+        <p>Loading occupancy data...</p>
+      )}
       {/* Facility dropdown */}
       <div style={{ marginBottom: "10px" }}>
         <label htmlFor="facility-select" style={{ marginRight: "10px" }}>
@@ -97,7 +102,6 @@ function App() {
           onChange={(e) => setSelectedDate(e.target.value)}
         />
       </div>
-
       {facilities.length > 0 ? (
         <OccupancyChart data={facilities} />
       ) : (
