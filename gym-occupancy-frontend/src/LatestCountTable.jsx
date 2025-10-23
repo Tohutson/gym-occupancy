@@ -8,7 +8,7 @@ import { useEffect, useState, useCallback } from "react";
 */
 export default function LatestCountTable({
   apiUrl = "http://localhost:8080/api/facilities/latest",
-  refreshIntervalMs = null,
+  refreshIntervalMs = 600000,
   onSelectLocation,
 }) {
   const [data, setData] = useState([]);
@@ -41,7 +41,7 @@ export default function LatestCountTable({
     } finally {
       setLoading(false);
     }
-  }, [apiUrl, lastFetch]);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
