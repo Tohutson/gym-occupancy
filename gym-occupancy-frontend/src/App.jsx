@@ -23,10 +23,9 @@ function App() {
     if (!selectedLocation || !selectedDate) return;
 
     // Convert selected date to start and end ISO timestamps
-    const start = new Date(selectedDate);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(selectedDate);
-    end.setHours(23, 59, 59, 999);
+    const [year, month, day] = selectedDate.split("-").map(Number);
+    const start = new Date(year, month - 1, day, 0, 0, 0, 0);
+    const end = new Date(year, month - 1, day, 23, 59, 59, 999);
 
     const startStr = start.toISOString().slice(0, 19); // "2025-10-16T00:00:00"
     const endStr = end.toISOString().slice(0, 19);
