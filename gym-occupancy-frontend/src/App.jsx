@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import OccupancyChart from "./OccupancyChart";
 import LatestCountTable from "./LatestCountTable";
+import { fetchLocations, fetchFacilityData } from "./api/facilities";
 
 function App() {
   const [facilities, setFacilities] = useState([]);
@@ -8,23 +9,17 @@ function App() {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, "0");
-    const dd = String(today.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`; // "2025-10-22"
+    return today.toISOString().slice(0, 10);
   });
+  const [loading, setLoading] = useState(false);
 
-  // Fetch all facilities once to populate dropdown
+  // Fetch all locations once to populate dropdown
   useEffect(() => {
-    fetch("http://localhost:8080/api/facilities")
-      .then((res) => res.json())
-      .then((data) => {
-        const uniqueLocations = [...new Set(data.map((d) => d.locationName))];
+    fetchLocations()
+      .then((uniqueLocations) => {
         setLocations(uniqueLocations);
-
-        if (uniqueLocations.length > 0 && !selectedLocation) {
+        if (!selectedLocation && uniqueLocations.length)
           setSelectedLocation("RWC Floor 2");
-        }
       })
       .catch((err) => console.error("Error fetching locations:", err));
   }, []);
@@ -32,46 +27,19 @@ function App() {
   // Fetch data for the selected facility and day
   useEffect(() => {
     if (!selectedLocation || !selectedDate) return;
-
-    // Convert selected date to start and end ISO timestamps
-    const [year, month, day] = selectedDate.split("-").map(Number);
-    const start = new Date(year, month - 1, day, 0, 0, 0, 0);
-    const end = new Date(year, month - 1, day, 23, 59, 59, 999);
-
-    const startStr = start.toISOString().slice(0, 19); // "2025-10-16T00:00:00"
-    const endStr = end.toISOString().slice(0, 19);
-
-    fetch(
-      `http://localhost:8080/api/facilities?locationName=${encodeURIComponent(
-        selectedLocation
-      )}&start=${startStr}&end=${endStr}`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        const formatted = data
-          .map((d) => ({
-            time: new Date(d.lastUpdatedDateAndTime),
-            count: d.lastCount,
-          }))
-          .sort((a, b) => a.time - b.time)
-          .map((d) => ({
-            ...d,
-            time: d.time.toLocaleString(),
-          }));
-        setFacilities(formatted);
-      })
-      .catch((err) => console.error("Error fetching facility data:", err));
+    setLoading(true);
+    fetchFacilityData(selectedLocation, selectedDate)
+    .then(setFacilities)
+    .catch((err) => console.error("error fetching facility data:", err))
+    .finally(() => setLoading(false));
   }, [selectedLocation, selectedDate]);
+    
 
   return (
     <div style={{ padding: "20px", fontFamily: "sans-serif" }}>
       <h2>Real-Time Gym Occupancy</h2>
 
-      {facilities.length > 0 ? (
-        <LatestCountTable onSelectLocation={(loc) => setSelectedLocation(loc)} />      ) : (
-        <p>Loading occupancy data...</p>
-      )}
-      {/* Facility dropdown */}
+      {/* Facility selector */}
       <div style={{ marginBottom: "10px" }}>
         <label htmlFor="facility-select" style={{ marginRight: "10px" }}>
           Select Facility:
@@ -102,10 +70,17 @@ function App() {
           onChange={(e) => setSelectedDate(e.target.value)}
         />
       </div>
-      {facilities.length > 0 ? (
-        <OccupancyChart data={facilities} />
-      ) : (
+
+      {/* Data display */}
+      {loading ? (
         <p>Loading occupancy data...</p>
+      ) : facilities.length > 0 ? (
+        <>
+          <LatestCountTable onSelectLocation={setSelectedLocation} />
+          <OccupancyChart data={facilities} />
+        </>
+      ) : (
+        <p>No data available for this date/location.</p>
       )}
     </div>
   );
