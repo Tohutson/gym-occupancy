@@ -8,7 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Time;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Repository
@@ -55,5 +57,17 @@ public interface FacilityCountRepository extends JpaRepository<FacilityCount, Lo
             @Param("locationName") String locationName,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
+    );
+
+    @Query(value = """
+SELECT AVG(last_count)
+FROM facility_counts
+WHERE location_name = :locationName
+  AND (last_updated_date_and_time::time BETWEEN (:start)::time AND (:end)::time)
+""", nativeQuery = true)
+    Double findAverageLastCountByLocationAndTime(
+            @Param("locationName") String locationName,
+            @Param("start") LocalTime start,
+            @Param("end") LocalTime end
     );
 }

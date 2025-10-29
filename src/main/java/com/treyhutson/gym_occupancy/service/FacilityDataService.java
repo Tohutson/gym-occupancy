@@ -3,7 +3,10 @@ package com.treyhutson.gym_occupancy.service;
 import com.treyhutson.gym_occupancy.model.FacilityCount;
 import com.treyhutson.gym_occupancy.repository.FacilityCountRepository;
 import org.springframework.stereotype.Service;
+
+import java.sql.Time;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -31,5 +34,11 @@ public class FacilityDataService {
         }
 
         return repository.findByLocationAndDateRange(locationName, start, end);
+    }
+
+    public Double getAverage(String locationName, LocalTime time) {
+        LocalTime startTime = time.minusMinutes(30);
+        LocalTime endTime = time.plusMinutes(30);
+        return repository.findAverageLastCountByLocationAndTime(locationName, startTime, endTime);
     }
 }
