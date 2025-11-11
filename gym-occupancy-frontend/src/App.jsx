@@ -22,7 +22,7 @@ function App() {
           setSelectedLocation("RWC Floor 2");
       })
       .catch((err) => console.error("Error fetching locations:", err));
-  }, []);
+  }, [selectedLocation]);
 
   // Fetch data for the selected facility and day
   useEffect(() => {
