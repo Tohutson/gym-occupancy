@@ -75,19 +75,27 @@ export default function LatestCountTable({
   return (
     <div style={{ marginTop: 16 }}>
       <h3>Latest Counts by Location</h3>
-
+  
       {loading && <p>Loading latest counts…</p>}
       {error && <p style={{ color: "red" }}>Error: {error}</p>}
       {!loading && !error && data.length === 0 && <p>No data available.</p>}
-
+  
       {!loading && !error && data.length > 0 && (
         <table style={{ width: "100%", borderCollapse: "collapse" }} aria-live="polite">
           <thead>
             <tr>
-              <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #ccc" }}>Location</th>
-              <th style={{ textAlign: "right", padding: 8, borderBottom: "1px solid #ccc" }}>Current Count</th>
-              <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #ccc" }}>Last Updated</th>
-              <th style={{ textAlign: "right", padding: 8, borderBottom: "1px solid #ccc" }}>Average</th>
+              <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #ccc" }}>
+                Location
+              </th>
+              <th style={{ textAlign: "right", padding: 8, borderBottom: "1px solid #ccc" }}>
+                Current Count
+              </th>
+              <th style={{ textAlign: "right", padding: 8, borderBottom: "1px solid #ccc" }}>
+                Average
+              </th>
+              <th style={{ textAlign: "right", padding: 8, borderBottom: "1px solid #ccc" }}>
+                Last Updated
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -97,19 +105,40 @@ export default function LatestCountTable({
                 onClick={() => handleRowClick(loc.locationName)}
                 role={onSelectLocation ? "button" : undefined}
                 tabIndex={onSelectLocation ? 0 : undefined}
-                onKeyDown={(e) => onSelectLocation && (e.key === "Enter" || e.key === " ") && handleRowClick(loc.locationName)}
-                style={{ cursor: onSelectLocation ? "pointer" : "default", borderTop: "1px solid #eee" }}
+                onKeyDown={(e) =>
+                  onSelectLocation &&
+                  (e.key === "Enter" || e.key === " ") &&
+                  handleRowClick(loc.locationName)
+                }
+                style={{
+                  cursor: onSelectLocation ? "pointer" : "default",
+                  borderTop: "1px solid #eee",
+                }}
               >
                 <td style={{ padding: "8px 4px" }}>{loc.locationName}</td>
-                <td style={{ padding: "8px 4px", textAlign: "right" }}>{loc.lastCount ?? "—"}</td>
-                <td style={{ padding: "8px 4px" }}>{formatUpdated(loc.lastUpdatedDateAndTime)}</td>
-                <td style={{ padding: "8px 4px", textAlign: "right" }}>{loc.average ?? "—"}</td>
+  
+                {/* Current Count */}
+                <td style={{ padding: "8px 4px", textAlign: "right" }}>
+                  {loc.lastCount ?? "—"}
+                </td>
+  
+                {/* Average (2 decimal places) */}
+                <td style={{ padding: "8px 4px", textAlign: "right" }}>
+                  {loc.average !== undefined && loc.average !== null
+                    ? loc.average.toFixed(2)
+                    : "—"}
+                </td>
+  
+                {/* Last Updated */}
+                <td style={{ padding: "8px 4px", textAlign: "right" }}>
+                  {formatUpdated(loc.lastUpdatedDateAndTime)}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
-
+  
       {!loading && !error && lastFetch && (
         <div style={{ marginTop: 8, color: "#666", fontSize: 12 }}>
           Last updated: {new Date(lastFetch).toLocaleTimeString()}
@@ -117,4 +146,5 @@ export default function LatestCountTable({
       )}
     </div>
   );
+  
 }
