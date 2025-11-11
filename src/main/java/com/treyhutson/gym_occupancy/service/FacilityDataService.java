@@ -39,6 +39,7 @@ public class FacilityDataService {
     public Double getAverage(String locationName, LocalTime time) {
         LocalTime startTime = time.minusMinutes(30);
         LocalTime endTime = time.plusMinutes(30);
-        return repository.findAverageLastCountByLocationAndTime(locationName, startTime, endTime);
+        Double avg = repository.findAverageLastCountByLocationAndTime(locationName, startTime, endTime);
+        return avg != null ? avg : 0.0;
     }
 }

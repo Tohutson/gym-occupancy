@@ -11,6 +11,7 @@ import java.sql.Time;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -40,11 +41,11 @@ public class FacilityCountController {
 
     // GET the average occupancy at a certain time for a facility
     @GetMapping("/average")
-    public ResponseEntity<Double> getAverage(
+    public ResponseEntity<Map<String, Double>> getAverage(
             @RequestParam String locationName,
             @RequestParam @DateTimeFormat(pattern = "HH:mm:ss") LocalTime time
     ) {
-        Double avg = facilityDataService.getAverage(locationName, time);
-        return ResponseEntity.ok(avg);
+        Double avg = facilityDataService.getAverage(locationName, time); // already safe from null
+        return ResponseEntity.ok(Map.of("average", avg));
     }
 }
