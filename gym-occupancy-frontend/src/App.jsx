@@ -9,7 +9,9 @@ function App() {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
-    return today.toISOString().slice(0, 10);
+    const estDate = new Date(today.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const formatted = estDate.toLocaleDateString('en-CA'); // YYYY-MM-DD
+    return formatted;
   });
   const [loading, setLoading] = useState(false);
 
