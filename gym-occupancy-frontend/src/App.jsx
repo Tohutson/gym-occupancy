@@ -8,10 +8,8 @@ function App() {
   const [locations, setLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedDate, setSelectedDate] = useState(() => {
-    const today = new Date();
-    const estDate = new Date(today.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-    const formatted = estDate.toLocaleDateString('en-CA'); // YYYY-MM-DD
-    return formatted;
+    const estDate = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+    return estDate;
   });
   const [loading, setLoading] = useState(false);
 
