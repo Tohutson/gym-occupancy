@@ -9,18 +9,20 @@ import {
 } from "recharts";
 
 function OccupancyChart({ data }) {
-  // Convert times to Date objects if not already
+  if (!data || data.length === 0) return null;
+
+  // Convert times to Date objects
   const formattedData = data.map((d) => ({
     ...d,
     timeObj: new Date(d.time),
   }));
 
-  // Define the fixed domain
-  const date = new Date(); // today (we'll only use the time part)
-  const start = new Date(date);
-  start.setHours(7, 0, 0, 0); // 7:00 AM
-  const end = new Date(date);
-  end.setHours(23, 0, 0, 0); // 11:00 PM
+  // Use the first data point's date to anchor the domain
+  const firstDate = new Date(formattedData[0].timeObj);
+  const start = new Date(firstDate);
+  start.setHours(7, 0, 0, 0); // 7:00 AM same day as data
+  const end = new Date(firstDate);
+  end.setHours(23, 0, 0, 0); // 11:00 PM same day
 
   return (
     <ResponsiveContainer width="100%" height={400}>
@@ -42,13 +44,12 @@ function OccupancyChart({ data }) {
               7 + i
             ).getTime()
           )}
-          tickFormatter={(time) => {
-            const d = new Date(time);
-            return d.toLocaleTimeString([], {
+          tickFormatter={(time) =>
+            new Date(time).toLocaleTimeString([], {
               hour: "numeric",
               minute: "2-digit",
-            });
-          }}
+            })
+          }
         />
 
         <YAxis />
@@ -60,7 +61,13 @@ function OccupancyChart({ data }) {
             })
           }
         />
-        <Line type="monotone" dataKey="count" stroke="#8884d8" dot={false} />
+        <Line
+          type="monotone"
+          dataKey="count"
+          stroke="#8884d8"
+          dot={false}
+          isAnimationActive={false}
+        />
       </LineChart>
     </ResponsiveContainer>
   );
