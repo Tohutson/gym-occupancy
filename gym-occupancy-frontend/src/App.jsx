@@ -24,14 +24,26 @@ function App() {
       .catch((err) => console.error("Error fetching locations:", err));
   }, [selectedLocation]);
 
-  // Fetch data for the selected facility and day
+  const REFRESH_INTERVAL = 5 * 60 * 1000; // 10 minutes
+
   useEffect(() => {
     if (!selectedLocation || !selectedDate) return;
-    setLoading(true);
-    fetchFacilityData(selectedLocation, selectedDate)
-    .then(setFacilities)
-    .catch((err) => console.error("error fetching facility data:", err))
-    .finally(() => setLoading(false));
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const newData = await fetchFacilityData(selectedLocation, selectedDate);
+        setFacilities(newData);
+      } catch (err) {
+        console.error("error fetching facility data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData(); // initial
+    const id = setInterval(fetchData, REFRESH_INTERVAL);
+    return () => clearInterval(id);
   }, [selectedLocation, selectedDate]);
     
 
