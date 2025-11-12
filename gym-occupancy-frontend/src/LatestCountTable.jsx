@@ -72,6 +72,15 @@ export default function LatestCountTable({
     };
   }, [apiUrl, refreshIntervalMs, data.length]);
 
+  const getColor = (current, average) => {
+    if (average === 0 || average == null || current == null) return "gray";
+    const diff = current - average;
+    const threshold = average * 0.25; // ±5% neutral range
+  
+    if (Math.abs(diff) < threshold) return "black";
+    return diff < 0 ? "green" : "red";
+  };
+
   return (
     <div style={{ marginTop: 16 }}>
       <h3>Latest Counts by Location</h3>
@@ -118,7 +127,14 @@ export default function LatestCountTable({
                 <td style={{ padding: "8px 4px" }}>{loc.locationName}</td>
   
                 {/* Current Count */}
-                <td style={{ padding: "8px 4px", textAlign: "right" }}>
+                <td
+                  style={{
+                    padding: "8px 4px",
+                    textAlign: "right",
+                    color: getColor(loc.lastCount, loc.average),
+                    fontWeight: "bold"
+                  }}
+                >
                   {loc.lastCount ?? "—"}
                 </td>
   
