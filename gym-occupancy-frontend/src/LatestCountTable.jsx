@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 export default function LatestCountTable({
   apiUrl = "http://localhost:8080/api/facilities",
@@ -9,6 +9,9 @@ export default function LatestCountTable({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastFetch, setLastFetch] = useState(null);
+
+  const [sortKey, setSortKey] = useState(null);
+  const [sortDir, setSortDir] = useState("asc");
 
   // Helper: format ISO timestamp to "HH:mm:ss"
   const formatToTime = (iso) => new Date(iso).toTimeString().slice(0, 8);
@@ -22,6 +25,14 @@ export default function LatestCountTable({
 
   // Handle row click
   const handleRowClick = (name) => onSelectLocation?.(name);
+  const handleSort = (key) => {
+    if (key === sortKey) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -76,39 +87,62 @@ export default function LatestCountTable({
     if (average === 0 || average == null || current == null) return "gray";
     const diff = current - average;
     const threshold = average * 0.25; // ±5% neutral range
-  
+
     if (Math.abs(diff) < threshold) return "black";
     return diff < 0 ? "green" : "red";
   };
 
+  const sortedData = useMemo(() => {
+    if (!sortKey) return data;
+
+    return [...data].sort((a, b) => {
+      const aVal = a[sortKey];
+      const bVal = b[sortKey];
+
+      // Handle null / undefined safely
+      if (aVal == null) return 1;
+      if (bVal == null) return -1;
+
+      // Numbers
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        return sortDir === "asc" ? aVal - bVal : bVal - aVal;
+      }
+
+      // Strings
+      return sortDir === "asc"
+        ? String(aVal).localeCompare(String(bVal))
+        : String(bVal).localeCompare(String(aVal));
+    });
+  }, [data, sortKey, sortDir]);
+
   return (
     <div style={{ marginTop: 16 }}>
       <h3>Latest Counts by Location</h3>
-  
+
       {loading && <p>Loading latest counts…</p>}
       {error && <p style={{ color: "red" }}>Error: {error}</p>}
       {!loading && !error && data.length === 0 && <p>No data available.</p>}
-  
+
       {!loading && !error && data.length > 0 && (
         <table style={{ width: "100%", borderCollapse: "collapse" }} aria-live="polite">
           <thead>
             <tr>
-              <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #ccc" }}>
-                Location
+              <th onClick={() => handleSort("locationName")} style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #ccc" }}>
+                Location {sortKey === "locationName" && (sortDir === "asc" ? "▲" : "▼")}
               </th>
-              <th style={{ textAlign: "right", padding: 8, borderBottom: "1px solid #ccc" }}>
-                Current Count
+              <th onClick={() => handleSort("lastCount")} style={{ textAlign: "right", padding: 8, borderBottom: "1px solid #ccc" }}>
+                Current Count {sortKey === "lastCount" && (sortDir === "asc" ? "▲" : "▼")}
               </th>
-              <th style={{ textAlign: "right", padding: 8, borderBottom: "1px solid #ccc" }}>
-                Average
+              <th onClick={() => handleSort("average")} style={{ textAlign: "right", padding: 8, borderBottom: "1px solid #ccc" }}>
+                Average {sortKey === "average" && (sortDir === "asc" ? "▲" : "▼")}
               </th>
-              <th style={{ textAlign: "right", padding: 8, borderBottom: "1px solid #ccc" }}>
-                Last Updated
+              <th onClick={() => handleSort("recordedAt")} style={{ textAlign: "right", padding: 8, borderBottom: "1px solid #ccc" }}>
+                Last Updated {sortKey === "recordedAt" && (sortDir === "asc" ? "▲" : "▼")}
               </th>
             </tr>
           </thead>
           <tbody>
-            {data.map((loc) => (
+            {sortedData.map((loc) => (
               <tr
                 key={loc.id}
                 onClick={() => handleRowClick(loc.locationName)}
@@ -125,7 +159,7 @@ export default function LatestCountTable({
                 }}
               >
                 <td style={{ padding: "8px 4px" }}>{loc.locationName}</td>
-  
+
                 {/* Current Count */}
                 <td
                   style={{
@@ -137,14 +171,14 @@ export default function LatestCountTable({
                 >
                   {loc.lastCount ?? "—"}
                 </td>
-  
+
                 {/* Average (2 decimal places) */}
                 <td style={{ padding: "8px 4px", textAlign: "right" }}>
                   {loc.average !== undefined && loc.average !== null
                     ? loc.average.toFixed(2)
                     : "—"}
                 </td>
-  
+
                 {/* Last Updated */}
                 <td style={{ padding: "8px 4px", textAlign: "right" }}>
                   {formatUpdated(loc.lastUpdatedDateAndTime)}
@@ -154,7 +188,7 @@ export default function LatestCountTable({
           </tbody>
         </table>
       )}
-  
+
       {!loading && !error && lastFetch && (
         <div style={{ marginTop: 8, color: "#666", fontSize: 12 }}>
           Last updated: {new Date(lastFetch).toLocaleTimeString()}
@@ -162,5 +196,5 @@ export default function LatestCountTable({
       )}
     </div>
   );
-  
+
 }
