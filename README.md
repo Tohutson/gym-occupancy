@@ -1,10 +1,12 @@
-# 🏋️‍♂️ Gym Occupancy Tracker
+# Gym Occupancy Tracker
 
 **A Spring Boot application for collecting, storing, and serving real-time and historical gym occupancy data at the University of Pittsburgh.**
 
 ---
 
-## 📋 Overview
+![](./images/dashboard.png)
+
+## Overview
 
 The **Gym Occupancy Tracker** automates the process of tracking live facility usage from the University of Pittsburgh’s [Campus Recreation Facility Counts](https://www.studentaffairs.pitt.edu/campus-recreation/facilities-hours/live-facility-counts).
 
@@ -18,7 +20,7 @@ This project lays the foundation for long-term gym usage analysis — providing 
 
 ---
 
-## ⚙️ Architecture Overview
+## Architecture Overview
 
 ```
 +-----------------------+
@@ -44,7 +46,7 @@ This project lays the foundation for long-term gym usage analysis — providing 
 
 ---
 
-## 🚀 Features
+## Features
 
 - **Automated Data Collection**: Scheduler runs every 10 minutes to call the Pitt occupancy API.
 - **Data Persistence**: All facility counts and timestamps are stored in PostgreSQL for historical tracking.
@@ -54,7 +56,7 @@ This project lays the foundation for long-term gym usage analysis — providing 
 
 ---
 
-## 🧩 Tech Stack
+## Tech Stack
 
 - **Backend:** Java 17 + Spring Boot 3
 - **Database:** PostgreSQL
@@ -65,7 +67,7 @@ This project lays the foundation for long-term gym usage analysis — providing 
 
 ---
 
-## 🗄️ Data Model
+## Data Model
 
 **FacilityCount Entity:**
 
@@ -82,7 +84,7 @@ This project lays the foundation for long-term gym usage analysis — providing 
 
 ---
 
-## 🌐 REST API Endpoints
+## REST API Endpoints
 
 | Method   | Endpoint                    | Description                       |
 | -------- | --------------------------- | --------------------------------- |
@@ -98,7 +100,7 @@ Future additions will include:
 
 ---
 
-## 🕒 Scheduler Configuration
+## Scheduler Configuration
 
 Runs every 10 minutes:
 
@@ -113,15 +115,7 @@ public void fetchAndStoreOccupancyData() {
 
 ---
 
-## 🧠 Future Work
-
-### Phase 2: Dashboard
-
-- Develop a frontend dashboard (React or Vue) to visualize:
-
-  - Current occupancy across facilities
-  - Historical occupancy trends
-  - Peak usage times
+## Future Work
 
 ### Phase 3: Predictive Analytics
 
@@ -135,7 +129,7 @@ public void fetchAndStoreOccupancyData() {
 
 ---
 
-## 💾 Setup Instructions
+## Setup Instructions
 
 ### Prerequisites
 
@@ -180,20 +174,18 @@ public void fetchAndStoreOccupancyData() {
 
 ---
 
-## 🧹 Maintenance
+## Maintenance
 
 A scheduled cleanup process automatically deletes records older than 90 days to prevent database bloat.
 
 ---
 
-## 🧑‍💻 Author
+## Author
 
 **Trey Hutson**
-Computer Science Student, University of Pittsburgh
-Research focus: Data-driven systems, machine learning, and backend development.
 
 ---
 
-## 📈 Project Goals
+## Project Goals
 
-> _Build an intelligent, data-backed system to understand and predict gym usage patterns — helping students plan workouts efficiently and facilities optimize operations._
+> _Build an intelligent, data-backed system to understand and predict gym usage patterns_
