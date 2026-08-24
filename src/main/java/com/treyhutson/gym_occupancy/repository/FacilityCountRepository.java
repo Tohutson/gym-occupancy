@@ -76,6 +76,9 @@ public interface FacilityCountRepository extends JpaRepository<FacilityCount, Lo
     @Query("SELECT fc FROM FacilityCount fc WHERE fc.facilityId = :facilityId ORDER BY fc.lastUpdatedDateAndTime DESC")
     List<FacilityCount> findLatestForFacility(@Param("facilityId") String facilityId, Pageable pageable);
 
+    @Query("SELECT MAX(fc.recordedAt) FROM FacilityCount fc")
+    Instant findLatestCollectedAt();
+
     @Query(value = """
 SELECT AVG(last_count)
 FROM facility_counts
