@@ -15,6 +15,8 @@ public class OccupancyProperties {
     private Duration retryDelay = Duration.ofSeconds(1);
     private Duration retryMaxDelay = Duration.ofSeconds(10);
     private Duration retention = Duration.ofDays(730);
+    private Duration baselineLookback = Duration.ofDays(56);
+    private int baselineMinimumDays = 3;
 
     public String getApiUrl() { return apiUrl; }
     public void setApiUrl(String apiUrl) { this.apiUrl = apiUrl; }
@@ -32,4 +34,8 @@ public class OccupancyProperties {
     public void setRetryMaxDelay(Duration retryMaxDelay) { this.retryMaxDelay = retryMaxDelay; }
     public Duration getRetention() { return retention; }
     public void setRetention(Duration retention) { this.retention = retention; }
+    public Duration getBaselineLookback() { return baselineLookback; }
+    public void setBaselineLookback(Duration baselineLookback) { this.baselineLookback = baselineLookback; }
+    public int getBaselineMinimumDays() { return baselineMinimumDays; }
+    public void setBaselineMinimumDays(int baselineMinimumDays) { this.baselineMinimumDays = baselineMinimumDays; }
 }
