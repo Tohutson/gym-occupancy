@@ -1,76 +1,116 @@
 import {
-  LineChart,
+  Area,
+  CartesianGrid,
+  ComposedChart,
   Line,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  CartesianGrid,
-  ResponsiveContainer,
 } from "recharts";
+import { buildChartData } from "./dashboardUtils";
 
-function OccupancyChart({ data }) {
-  if (!data || data.length === 0) return null;
+function formatTime(value, timezone) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
 
-  // Convert times to Date objects
-  const formattedData = data.map((d) => ({
-    ...d,
-    timeObj: new Date(d.time),
-  }));
+function formatTick(value, timezone, range) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    weekday: range === "DAYS_7" ? "short" : undefined,
+    hour: range === "TODAY" ? "numeric" : undefined,
+    month: range === "DAYS_7" ? "numeric" : undefined,
+    day: range === "DAYS_7" ? "numeric" : undefined,
+  }).format(new Date(value));
+}
 
-  // Use the first data point's date to anchor the domain
-  const firstDate = new Date(formattedData[0].timeObj);
-  const start = new Date(firstDate);
-  start.setHours(7, 0, 0, 0); // 7:00 AM same day as data
-  const end = new Date(firstDate);
-  end.setHours(23, 0, 0, 0); // 11:00 PM same day
-
+function ChartTooltip({ active, payload, label, timezone }) {
+  if (!active || !payload?.length) return null;
+  const values = Object.fromEntries(payload.map((item) => [item.dataKey, item.value]));
   return (
-    <ResponsiveContainer width="100%" height={400}>
-      <LineChart
-        data={formattedData}
-        margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis
-          dataKey="timeObj"
-          domain={[start.getTime(), end.getTime()]}
-          type="number"
-          scale="time"
-          ticks={Array.from({ length: 17 }, (_, i) =>
-            new Date(
-              start.getFullYear(),
-              start.getMonth(),
-              start.getDate(),
-              7 + i
-            ).getTime()
-          )}
-          tickFormatter={(time) =>
-            new Date(time).toLocaleTimeString([], {
-              hour: "numeric",
-              minute: "2-digit",
-            })
-          }
-        />
-
-        <YAxis />
-        <Tooltip
-          labelFormatter={(time) =>
-            new Date(time).toLocaleTimeString([], {
-              hour: "numeric",
-              minute: "2-digit",
-            })
-          }
-        />
-        <Line
-          type="monotone"
-          dataKey="count"
-          stroke="#8884d8"
-          dot={false}
-          isAnimationActive={false}
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <div className="chart-tooltip">
+      <strong>{formatTime(label, timezone)}</strong>
+      {values.count != null && <span>Measured {Math.round(values.count)}</span>}
+      {values.expected != null && <span>Typical {Math.round(values.expected)}</span>}
+    </div>
   );
 }
 
-export default OccupancyChart;
+export default function OccupancyChart({ dashboard }) {
+  const data = buildChartData(dashboard);
+  const hasMeasurements = dashboard.measurements.length > 0;
+  const observedMaximum = Math.max(
+    ...data.map((point) => Math.max(point.count || 0, point.expectedRange?.[1] || 0))
+  );
+  const chartMaximum = Math.min(
+    dashboard.facility.capacity || Number.POSITIVE_INFINITY,
+    Math.max(50, Math.ceil((observedMaximum * 1.15) / 25) * 25)
+  );
+
+  if (!hasMeasurements) {
+    return <div className="chart-empty">No measurements exist in this time range.</div>;
+  }
+
+  return (
+    <div className="chart-wrap" role="img" aria-label="Occupancy over time">
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={data} margin={{ top: 12, right: 12, left: -18, bottom: 0 }}>
+          <CartesianGrid stroke="#e7e5e4" vertical={false} />
+          <XAxis
+            dataKey="timestamp"
+            type="number"
+            scale="time"
+            domain={["dataMin", "dataMax"]}
+            minTickGap={48}
+            tickLine={false}
+            axisLine={false}
+            tickFormatter={(value) => formatTick(value, dashboard.timezone, dashboard.range)}
+          />
+          <YAxis
+            domain={[0, chartMaximum]}
+            allowDecimals={false}
+            tickLine={false}
+            axisLine={false}
+          />
+          <Tooltip content={<ChartTooltip timezone={dashboard.timezone} />} />
+          {dashboard.range === "TODAY" && (
+            <Area
+              dataKey="expectedRange"
+              stroke="none"
+              fill="#d6e7e4"
+              fillOpacity={0.7}
+              isAnimationActive={false}
+              connectNulls={false}
+            />
+          )}
+          {dashboard.range === "TODAY" && (
+            <Line
+              dataKey="expected"
+              name="Typical"
+              stroke="#6b8e88"
+              strokeWidth={1.5}
+              strokeDasharray="5 5"
+              dot={false}
+              isAnimationActive={false}
+              connectNulls={false}
+            />
+          )}
+          <Line
+            dataKey="count"
+            name="Measured"
+            stroke="#0f766e"
+            strokeWidth={2.5}
+            dot={false}
+            activeDot={{ r: 4, fill: "#0f766e", stroke: "#fff", strokeWidth: 2 }}
+            isAnimationActive={false}
+            connectNulls={false}
+          />
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
