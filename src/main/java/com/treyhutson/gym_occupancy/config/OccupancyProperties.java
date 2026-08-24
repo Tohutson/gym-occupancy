@@ -17,6 +17,7 @@ public class OccupancyProperties {
     private Duration retention = Duration.ofDays(730);
     private Duration baselineLookback = Duration.ofDays(56);
     private int baselineMinimumDays = 3;
+    private Duration staleAfter = Duration.ofMinutes(30);
 
     public String getApiUrl() { return apiUrl; }
     public void setApiUrl(String apiUrl) { this.apiUrl = apiUrl; }
@@ -38,4 +39,6 @@ public class OccupancyProperties {
     public void setBaselineLookback(Duration baselineLookback) { this.baselineLookback = baselineLookback; }
     public int getBaselineMinimumDays() { return baselineMinimumDays; }
     public void setBaselineMinimumDays(int baselineMinimumDays) { this.baselineMinimumDays = baselineMinimumDays; }
+    public Duration getStaleAfter() { return staleAfter; }
+    public void setStaleAfter(Duration staleAfter) { this.staleAfter = staleAfter; }
 }

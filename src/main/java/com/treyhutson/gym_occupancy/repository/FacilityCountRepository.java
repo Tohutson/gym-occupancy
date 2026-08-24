@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -16,10 +17,10 @@ import java.util.List;
 public interface FacilityCountRepository extends JpaRepository<FacilityCount, Long> {
     @Query("""
         SELECT fc FROM FacilityCount fc
-        WHERE fc.recordedAt IN (
+        WHERE fc.recordedAt = (
             SELECT MAX(fc2.recordedAt)
             FROM FacilityCount fc2
-            GROUP BY fc2.facilityId
+            WHERE fc2.facilityId = fc.facilityId
         )
         """)
     List<FacilityCount> findLatestPerFacility();
@@ -71,6 +72,9 @@ public interface FacilityCountRepository extends JpaRepository<FacilityCount, Lo
             @Param("start") Instant start,
             @Param("end") Instant end
     );
+
+    @Query("SELECT fc FROM FacilityCount fc WHERE fc.facilityId = :facilityId ORDER BY fc.lastUpdatedDateAndTime DESC")
+    List<FacilityCount> findLatestForFacility(@Param("facilityId") String facilityId, Pageable pageable);
 
     @Query(value = """
 SELECT AVG(last_count)
