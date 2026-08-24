@@ -1,191 +1,89 @@
 # Gym Occupancy Tracker
 
-**A Spring Boot application for collecting, storing, and serving real-time and historical gym occupancy data at the University of Pittsburgh.**
-
----
-
-![](./images/dashboard.png)
-
-## Overview
-
-The **Gym Occupancy Tracker** automates the process of tracking live facility usage from the University of Pittsburgh’s [Campus Recreation Facility Counts](https://www.studentaffairs.pitt.edu/campus-recreation/facilities-hours/live-facility-counts).
-
-It performs three key functions:
-
-1. **Fetch** live occupancy data from the Pitt API.
-2. **Store** it in a **PostgreSQL** database at scheduled intervals for historical trend analysis.
-3. **Expose** the stored data through a **REST API**, enabling downstream applications such as dashboards or machine learning models.
-
-This project lays the foundation for long-term gym usage analysis — providing insights into peak times, trends, and predictions for better facility management and student planning.
-
----
-
-## Architecture Overview
-
-```
-+-----------------------+
-|  Pitt API (External)  |
-+----------+------------+
-           |
-           v
-+-----------------------+
-|  Gym Occupancy App    |
-|  (Spring Boot)        |
-|  -------------------  |
-|  • Scheduler          |
-|  • Data Mapper        |
-|  • REST API           |
-+----------+------------+
-           |
-           v
-+-----------------------+
-|  PostgreSQL Database  |
-|  (Historical Storage) |
-+-----------------------+
-```
-
----
+Gym Occupancy Tracker collects facility occupancy measurements and shows them in a single-page dashboard. The dashboard compares the current count with the same weekday and time in recent history.
 
 ## Features
 
-- **Automated Data Collection**: Scheduler runs every 10 minutes to call the Pitt occupancy API.
-- **Data Persistence**: All facility counts and timestamps are stored in PostgreSQL for historical tracking.
-- **REST API**: Exposes endpoints for retrieving, filtering, and managing facility data.
-- **Data Cleanup**: Automatic retention policy ensures database size stays manageable.
-- **Extensible Design**: Future-ready for dashboards and predictive modeling.
+- Collects occupancy data on a configurable schedule.
+- Retries temporary upstream failures with bounded exponential backoff.
+- Stores UTC timestamps and rejects duplicate measurements.
+- Compares the current count with a same-weekday 30-minute baseline.
+- Shows measured occupancy, a typical curve, and a historical quartile range.
+- Suggests lower-occupancy periods later in the day.
+- Reports application, database, and data freshness health.
+- Runs as one application container and one PostgreSQL container.
 
----
+## Architecture
 
-## Tech Stack
+The production application uses these components:
 
-- **Backend:** Java 17 + Spring Boot 3
-- **Database:** PostgreSQL
-- **ORM:** Spring Data JPA / Hibernate
-- **Scheduler:** Spring `@Scheduled` tasks
-- **API Client:** `RestTemplate` for external API calls
-- **Build Tool:** Maven
-
----
-
-## Data Model
-
-**FacilityCount Entity:**
-
-| Field                    | Type          | Description                                 |
-| ------------------------ | ------------- | ------------------------------------------- |
-| `id`                     | Long          | Primary key                                 |
-| `facilityName`           | String        | Name of the gym/facility                    |
-| `locationName`           | String        | Location of the facility                    |
-| `totalCapacity`          | int           | Maximum capacity of the facility            |
-| `lastCount`              | int           | Most recent occupancy count                 |
-| `lastUpdatedDateAndTime` | LocalDateTime | Timestamp from Pitt’s API                   |
-| `recordedAt`             | LocalDateTime | When the record was collected by our system |
-| `isClosed`               | boolean       | Whether the facility is currently closed    |
-
----
-
-## REST API Endpoints
-
-| Method   | Endpoint                    | Description                       |
-| -------- | --------------------------- | --------------------------------- |
-| `GET`    | `/api/facility-counts`      | Retrieve all records              |
-| `GET`    | `/api/facility-counts/{id}` | Get a specific record             |
-| `DELETE` | `/api/facility-counts`      | Delete all records (testing only) |
-
-Future additions will include:
-
-- Query by **date range**
-- Query by **facility**
-- Aggregated statistics (e.g., average occupancy per hour)
-
----
-
-## Scheduler Configuration
-
-Runs every 10 minutes:
-
-```java
-@Scheduled(fixedRate = 600_000)
-public void fetchAndStoreOccupancyData() {
-    // 1. Call Pitt API
-    // 2. Map JSON -> Facility entities
-    // 3. Save FacilityCount records in PostgreSQL
-}
+```text
+Occupancy endpoint -> Spring collector -> PostgreSQL
+                              |
+Browser <- React static files <- Spring dashboard API
 ```
 
----
+The Docker image builds the React application and includes the result in the Spring Boot JAR. The browser and API use the same origin.
 
-## Future Work
+## Requirements
 
-### Phase 3: Predictive Analytics
+For the container deployment, install these tools:
 
-- Train models to **forecast gym occupancy** based on:
+- Docker Engine.
+- Docker Compose v2.
 
-  - Time of day
-  - Day of week
-  - Semester patterns
+For local development, also install Java 17 and Node.js 22.
 
-- Provide a “Best Time to Visit” feature.
+## Start with Docker Compose
 
----
+1. Copy `.env.example` to `.env`.
+2. Set `POSTGRES_PASSWORD` to a long random value.
+3. Set `OCCUPANCY_API_URL` to the complete upstream endpoint URL.
+4. Run `docker compose up --build -d`.
+5. Run `docker compose ps`.
+6. Open `http://localhost:8080`.
+7. Run `curl http://localhost:8080/actuator/health/readiness`.
 
-## Setup Instructions
+The readiness endpoint returns `DOWN` until the collector stores its first valid measurement.
 
-### Prerequisites
+## Stop the application
 
-- Java 17+
-- Maven
-- PostgreSQL (local or cloud)
-- Optional: Docker
+Run this command:
 
-### Steps
+```bash
+docker compose down
+```
 
-1. **Clone the repository**
+This command keeps the PostgreSQL volume. Do not add `--volumes` unless you want to delete all stored measurements.
 
-   ```bash
-   git clone https://github.com/treyhutson/gym-occupancy.git
-   cd gym-occupancy
-   ```
+## Test and build
 
-2. **Configure PostgreSQL**
-   Create a database:
+Run the backend tests:
 
-   ```sql
-   CREATE DATABASE gym_occupancy;
-   ```
+```bash
+./mvnw test
+```
 
-   Update your `application.properties`:
+Run the frontend tests and build:
 
-   ```properties
-   spring.datasource.url=jdbc:postgresql://localhost:5432/gym_occupancy
-   spring.datasource.username=postgres
-   spring.datasource.password=your_password
-   spring.jpa.hibernate.ddl-auto=update
-   ```
+```bash
+npm --prefix gym-occupancy-frontend test -- --watchAll=false
+npm --prefix gym-occupancy-frontend run build
+```
 
-3. **Run the app**
+Build the production image:
 
-   ```bash
-   mvn spring-boot:run
-   ```
+```bash
+docker compose build
+```
 
-4. **Access the REST API**
-   Open: [http://localhost:8080/api/facility-counts](http://localhost:8080/api/facility-counts)
+## Documentation
 
----
-
-## Maintenance
-
-A scheduled cleanup process automatically deletes records older than 90 days to prevent database bloat.
-
----
-
-## Author
-
-**Trey Hutson**
-
----
-
-## Project Goals
-
-> _Build an intelligent, data-backed system to understand and predict gym usage patterns_
+- [Collector configuration](docs/collector.md)
+- [Occupancy analysis](docs/occupancy-analysis.md)
+- [Dashboard API](docs/dashboard-api.md)
+- [Dashboard behavior](docs/dashboard.md)
+- [Health checks](docs/health.md)
+- [Linux operations](docs/linux-deployment.md)
+- [Cloudflare Tunnel](docs/cloudflare-tunnel.md)
+- [Architecture](docs/architecture.md)

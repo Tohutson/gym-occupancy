@@ -36,3 +36,4 @@ build/
 /graphify-out/
 /gym-occupancy-frontend/node_modules/
 /gym-occupancy-frontend/build/
+.env

@@ -1,0 +1,11 @@
+.git
+.github
+.idea
+.vscode
+graphify-out
+target
+test-results
+gym-occupancy-frontend/build
+gym-occupancy-frontend/node_modules
+*.log
+.env
