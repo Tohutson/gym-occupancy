@@ -10,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
-import java.time.LocalTime;
 import java.util.List;
 
 @Repository
@@ -45,21 +44,6 @@ public interface FacilityCountRepository extends JpaRepository<FacilityCount, Lo
             @Param("recordedAt") Instant recordedAt
     );
 
-    // Get all records between two dates
-    @Query("SELECT fc FROM FacilityCount fc WHERE fc.lastUpdatedDateAndTime >= :start AND fc.lastUpdatedDateAndTime <= :end ORDER BY fc.lastUpdatedDateAndTime")
-    List<FacilityCount> findBetweenDates(
-            @Param("start") Instant start,
-            @Param("end") Instant end
-    );
-
-    // Get all records for a location between two dates
-    @Query("SELECT fc FROM FacilityCount fc WHERE fc.locationName = :locationName AND fc.lastUpdatedDateAndTime >= :start AND fc.lastUpdatedDateAndTime <= :end ORDER BY fc.lastUpdatedDateAndTime")
-    List<FacilityCount> findByLocationAndDateRange(
-            @Param("locationName") String locationName,
-            @Param("start") Instant start,
-            @Param("end") Instant end
-    );
-
     @Query("""
             SELECT fc FROM FacilityCount fc
             WHERE fc.facilityId = :facilityId
@@ -78,18 +62,6 @@ public interface FacilityCountRepository extends JpaRepository<FacilityCount, Lo
 
     @Query("SELECT MAX(fc.recordedAt) FROM FacilityCount fc")
     Instant findLatestCollectedAt();
-
-    @Query(value = """
-SELECT AVG(last_count)
-FROM facility_counts
-WHERE location_name = :locationName
-  AND (last_updated_date_and_time::time BETWEEN (:start)::time AND (:end)::time)
-""", nativeQuery = true)
-    Double findAverageLastCountByLocationAndTime(
-            @Param("locationName") String locationName,
-            @Param("start") LocalTime start,
-            @Param("end") LocalTime end
-    );
 
     @Transactional
     @Modifying
