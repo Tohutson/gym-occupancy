@@ -1,13 +1,17 @@
 package com.treyhutson.gym_occupancy.model;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(
         name = "facility_counts",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"location_name", "last_updated_date_and_time"})
+                @UniqueConstraint(name = "uq_facility_measurement", columnNames = {"facility_id", "last_updated_date_and_time"})
+        },
+        indexes = {
+                @Index(name = "idx_facility_recorded_at", columnList = "facility_id, recorded_at"),
+                @Index(name = "idx_recorded_at", columnList = "recorded_at")
         }
 )
 public class FacilityCount {
@@ -16,6 +20,9 @@ public class FacilityCount {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
+    private String facilityId;
+
     private String facilityName;
     private String locationName;
     private int totalCapacity;
@@ -23,15 +30,21 @@ public class FacilityCount {
 
     private boolean isClosed;
 
-    private LocalDateTime lastUpdatedDateAndTime;
+    @Column(nullable = false)
+    private Instant lastUpdatedDateAndTime;
 
     // timestamp for when *we* stored the record (important for history)
-    private LocalDateTime recordedAt;
+    @Column(nullable = false)
+    private Instant recordedAt;
 
     // Getters and setters
     public Long getId() { return id; }
 
     public void setId(Long id) { this.id = id; }
+
+    public String getFacilityId() { return facilityId; }
+
+    public void setFacilityId(String facilityId) { this.facilityId = facilityId; }
 
     public String getFacilityName() { return facilityName; }
 
@@ -53,11 +66,11 @@ public class FacilityCount {
 
     public void setClosed(boolean closed) { isClosed = closed; }
 
-    public LocalDateTime getLastUpdatedDateAndTime() { return lastUpdatedDateAndTime; }
+    public Instant getLastUpdatedDateAndTime() { return lastUpdatedDateAndTime; }
 
-    public void setLastUpdatedDateAndTime(LocalDateTime lastUpdatedDateAndTime) { this.lastUpdatedDateAndTime = lastUpdatedDateAndTime; }
+    public void setLastUpdatedDateAndTime(Instant lastUpdatedDateAndTime) { this.lastUpdatedDateAndTime = lastUpdatedDateAndTime; }
 
-    public LocalDateTime getRecordedAt() { return recordedAt; }
+    public Instant getRecordedAt() { return recordedAt; }
 
-    public void setRecordedAt(LocalDateTime recordedAt) { this.recordedAt = recordedAt; }
+    public void setRecordedAt(Instant recordedAt) { this.recordedAt = recordedAt; }
 }

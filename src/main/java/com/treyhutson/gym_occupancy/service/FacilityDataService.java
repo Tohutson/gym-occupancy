@@ -4,8 +4,7 @@ import com.treyhutson.gym_occupancy.model.FacilityCount;
 import com.treyhutson.gym_occupancy.repository.FacilityCountRepository;
 import org.springframework.stereotype.Service;
 
-import java.sql.Time;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -21,13 +20,13 @@ public class FacilityDataService {
         return repository.findLatestPerFacility();
     }
 
-    public List<FacilityCount> getFiltered(String locationName, LocalDateTime start, LocalDateTime end) {
+    public List<FacilityCount> getFiltered(String locationName, Instant start, Instant end) {
         if (start == null && end == null && locationName == null) {
             return repository.findAll();
         }
 
-        if (start == null) start = LocalDateTime.MIN;
-        if (end == null) end = LocalDateTime.MAX;
+        if (start == null) start = Instant.EPOCH;
+        if (end == null) end = Instant.now();
 
         if (locationName == null) {
             return repository.findBetweenDates(start, end);

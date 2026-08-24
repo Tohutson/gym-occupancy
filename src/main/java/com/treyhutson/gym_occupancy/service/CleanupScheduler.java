@@ -1,26 +1,35 @@
 package com.treyhutson.gym_occupancy.service;
 
+import com.treyhutson.gym_occupancy.config.OccupancyProperties;
+import com.treyhutson.gym_occupancy.repository.FacilityCountRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import java.time.Clock;
+import java.time.Instant;
 
 @Component
 public class CleanupScheduler {
+    private static final Logger log = LoggerFactory.getLogger(CleanupScheduler.class);
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final FacilityCountRepository repository;
+    private final OccupancyProperties properties;
+    private final Clock clock;
 
-    // Runs every day at 3 AM
-    @Scheduled(cron = "0 0 3 * * *")
-    @Transactional
+    public CleanupScheduler(FacilityCountRepository repository, OccupancyProperties properties, Clock clock) {
+        this.repository = repository;
+        this.properties = properties;
+        this.clock = clock;
+    }
+
+    @Scheduled(cron = "${occupancy.cleanup-cron:0 0 3 * * *}", zone = "UTC")
     public void cleanOldRecords() {
-        int deleted = entityManager.createQuery(
-                "DELETE FROM FacilityCount f WHERE f.recordedAt < CURRENT_TIMESTAMP - 90"
-        ).executeUpdate();
-
-        System.out.println("🧹 Deleted " + deleted + " old FacilityCount records.");
+        Instant cutoff = clock.instant().minus(properties.getRetention());
+        int deleted = repository.deleteByRecordedAtBefore(cutoff);
+        if (deleted > 0) {
+            log.info("Deleted {} measurements older than {}", deleted, cutoff);
+        }
     }
 }

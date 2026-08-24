@@ -8,8 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Time;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -20,7 +19,7 @@ public interface FacilityCountRepository extends JpaRepository<FacilityCount, Lo
         WHERE fc.recordedAt IN (
             SELECT MAX(fc2.recordedAt)
             FROM FacilityCount fc2
-            GROUP BY fc2.locationName
+            GROUP BY fc2.facilityId
         )
         """)
     List<FacilityCount> findLatestPerFacility();
@@ -29,34 +28,35 @@ public interface FacilityCountRepository extends JpaRepository<FacilityCount, Lo
     @Modifying
     @Query(value = """
         INSERT INTO facility_counts 
-            (facility_name, location_name, total_capacity, last_count, is_closed, last_updated_date_and_time, recorded_at)
+            (facility_id, facility_name, location_name, total_capacity, last_count, is_closed, last_updated_date_and_time, recorded_at)
         VALUES 
-            (:facilityName, :locationName, :totalCapacity, :lastCount, :isClosed, :lastUpdatedDateAndTime, :recordedAt)
-        ON CONFLICT (location_name, last_updated_date_and_time) DO NOTHING
+            (:facilityId, :facilityName, :locationName, :totalCapacity, :lastCount, :isClosed, :lastUpdatedDateAndTime, :recordedAt)
+        ON CONFLICT (facility_id, last_updated_date_and_time) DO NOTHING
         """, nativeQuery = true)
-    void insertIgnoreDuplicates(
+    int insertIgnoreDuplicates(
+            @Param("facilityId") String facilityId,
             @Param("facilityName") String facilityName,
             @Param("locationName") String locationName,
             @Param("totalCapacity") int totalCapacity,
             @Param("lastCount") int lastCount,
             @Param("isClosed") boolean isClosed,
-            @Param("lastUpdatedDateAndTime") LocalDateTime lastUpdatedDateAndTime,
-            @Param("recordedAt") LocalDateTime recordedAt
+            @Param("lastUpdatedDateAndTime") Instant lastUpdatedDateAndTime,
+            @Param("recordedAt") Instant recordedAt
     );
 
     // Get all records between two dates
     @Query("SELECT fc FROM FacilityCount fc WHERE fc.lastUpdatedDateAndTime >= :start AND fc.lastUpdatedDateAndTime <= :end ORDER BY fc.lastUpdatedDateAndTime")
     List<FacilityCount> findBetweenDates(
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end
+            @Param("start") Instant start,
+            @Param("end") Instant end
     );
 
     // Get all records for a location between two dates
     @Query("SELECT fc FROM FacilityCount fc WHERE fc.locationName = :locationName AND fc.lastUpdatedDateAndTime >= :start AND fc.lastUpdatedDateAndTime <= :end ORDER BY fc.lastUpdatedDateAndTime")
     List<FacilityCount> findByLocationAndDateRange(
             @Param("locationName") String locationName,
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end
+            @Param("start") Instant start,
+            @Param("end") Instant end
     );
 
     @Query(value = """
@@ -70,4 +70,8 @@ WHERE location_name = :locationName
             @Param("start") LocalTime start,
             @Param("end") LocalTime end
     );
+
+    @Transactional
+    @Modifying
+    int deleteByRecordedAtBefore(Instant cutoff);
 }

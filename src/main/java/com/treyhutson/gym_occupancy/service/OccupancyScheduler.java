@@ -1,60 +1,28 @@
 package com.treyhutson.gym_occupancy.service;
 
-import com.treyhutson.gym_occupancy.model.FacilityCount;
-import com.treyhutson.gym_occupancy.repository.FacilityCountRepository;
-import com.treyhutson.gym_occupancy.model.Facility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 @Component
 public class OccupancyScheduler {
+    private static final Logger log = LoggerFactory.getLogger(OccupancyScheduler.class);
 
-    private final ExternalFacilityService facilityOccupancyService;
-    private final FacilityCountRepository repository;
+    private final OccupancyCollectionService collectionService;
 
-    public OccupancyScheduler(ExternalFacilityService facilityOccupancyService,
-                              FacilityCountRepository repository) {
-        this.facilityOccupancyService = facilityOccupancyService;
-        this.repository = repository;
+    public OccupancyScheduler(OccupancyCollectionService collectionService) {
+        this.collectionService = collectionService;
     }
 
-    @Scheduled(fixedRate = 600_000) // every 10 minutes
+    @Scheduled(fixedDelayString = "${occupancy.poll-delay:10m}", initialDelayString = "${occupancy.initial-delay:5s}")
     public void fetchAndStoreOccupancy() {
-        List<Facility> facilities = facilityOccupancyService.fetchOccupancyData();
-
-        facilities.forEach(f -> {
-            FacilityCount entity = toEntity(f);
-            repository.insertIgnoreDuplicates(
-                    entity.getFacilityName(),
-                    entity.getLocationName(),
-                    entity.getTotalCapacity(),
-                    entity.getLastCount(),
-                    entity.isClosed(),
-                    entity.getLastUpdatedDateAndTime(),
-                    entity.getRecordedAt()
-            );
-            System.out.println("[" + f.getLastUpdated() + "] Saved: " + f);
-        });
-    }
-
-    public FacilityCount toEntity(Facility facility) {
-        FacilityCount entity = new FacilityCount();
-        entity.setFacilityName(facility.getFacilityName());
-        entity.setLocationName(facility.getLocationName());
-        entity.setTotalCapacity(facility.getTotalCapacity());
-        entity.setLastCount(facility.getLastCount());
-        entity.setClosed(facility.isClosed());
-
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
-        entity.setLastUpdatedDateAndTime(LocalDateTime.parse(facility.getLastUpdated(), formatter));
-
-        entity.setRecordedAt(LocalDateTime.now()); // timestamp for trend analysis
-        return entity;
+        try {
+            OccupancyCollectionService.CollectionResult result = collectionService.collect();
+            log.info("Occupancy collection succeeded: received={}, inserted={}", result.received(), result.inserted());
+        } catch (RuntimeException exception) {
+            log.warn("Occupancy collection failed: {}", exception.getMessage());
+            log.debug("Occupancy collection failure details", exception);
+        }
     }
 }
-

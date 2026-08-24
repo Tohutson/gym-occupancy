@@ -1,5 +1,6 @@
 package com.treyhutson.gym_occupancy.controller;
 
+import com.treyhutson.gym_occupancy.config.OccupancyProperties;
 import com.treyhutson.gym_occupancy.model.FacilityCount;
 import com.treyhutson.gym_occupancy.repository.FacilityCountRepository;
 import com.treyhutson.gym_occupancy.service.FacilityDataService;
@@ -7,7 +8,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.Time;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -18,9 +18,12 @@ import java.util.Map;
 @RequestMapping("/api/facilities")
 public class FacilityCountController {
     private final FacilityDataService facilityDataService;
+    private final OccupancyProperties occupancyProperties;
 
-    public FacilityCountController(FacilityCountRepository repository, FacilityDataService facilityDataService) {
+    public FacilityCountController(FacilityCountRepository repository, FacilityDataService facilityDataService,
+                                   OccupancyProperties occupancyProperties) {
         this.facilityDataService = facilityDataService;
+        this.occupancyProperties = occupancyProperties;
     }
 
     // GET all records or filter by locationName, start and end date if provided
@@ -30,7 +33,10 @@ public class FacilityCountController {
             @RequestParam(required = false) LocalDateTime start,
             @RequestParam(required = false) LocalDateTime end) {
 
-        return facilityDataService.getFiltered(locationName, start, end);
+        return facilityDataService.getFiltered(
+                locationName,
+                start == null ? null : start.atZone(occupancyProperties.getSourceZone()).toInstant(),
+                end == null ? null : end.atZone(occupancyProperties.getSourceZone()).toInstant());
     }
 
     // GET the latest record for each facility
