@@ -21,6 +21,8 @@ import java.util.List;
 
 @Service
 public class DashboardService {
+    static final int MAX_DASHBOARD_MEASUREMENTS = 2_500;
+
     private final FacilityCountRepository repository;
     private final HistoricalBaselineService baselineService;
     private final OccupancyProperties properties;
@@ -46,6 +48,15 @@ public class DashboardService {
         if (facilityId == null || facilityId.isBlank()) {
             throw new IllegalArgumentException("facilityId is required");
         }
+        if (facilityId.length() > 255) {
+            throw new IllegalArgumentException("facilityId must be at most 255 characters");
+        }
+        if (facilityId.codePoints().anyMatch(Character::isISOControl)) {
+            throw new IllegalArgumentException("facilityId contains invalid characters");
+        }
+        if (range == null) {
+            throw new IllegalArgumentException("range is required");
+        }
         FacilityCount current = repository.findLatestForFacility(facilityId, PageRequest.of(0, 1)).stream()
                 .findFirst()
                 .orElseThrow(() -> new FacilityNotFoundException(facilityId));
@@ -54,10 +65,10 @@ public class DashboardService {
         ZonedDateTime localNow = now.atZone(properties.getSourceZone());
         Instant todayStart = localNow.toLocalDate().atStartOfDay(properties.getSourceZone()).toInstant();
         Instant rangeStart = range.getDuration() == null ? todayStart : now.minus(range.getDuration());
-        List<FacilityCount> measurements = repository.findHistoryForFacility(facilityId, rangeStart, now.plusSeconds(1));
+        List<FacilityCount> measurements = boundedHistory(facilityId, rangeStart, now.plusSeconds(1));
         List<FacilityCount> todayMeasurements = range == DashboardRange.TODAY
                 ? measurements
-                : repository.findHistoryForFacility(facilityId, todayStart, now.plusSeconds(1));
+                : boundedHistory(facilityId, todayStart, now.plusSeconds(1));
         HistoricalAnalysis analysis = baselineService.analyze(current);
 
         long ageSeconds = Math.max(0, Duration.between(current.getRecordedAt(), now).getSeconds());
@@ -75,6 +86,14 @@ public class DashboardService {
                 measurements.stream().map(value -> new DashboardResponse.MeasurementPoint(value.getLastUpdatedDateAndTime(), value.getLastCount())).toList(),
                 baselinePoints(localNow.toLocalDate(), analysis.baseline()),
                 recommendedWindows(localNow, analysis.baseline()));
+    }
+
+    private List<FacilityCount> boundedHistory(String facilityId, Instant start, Instant end) {
+        List<FacilityCount> newestFirst = repository.findRecentHistoryForFacility(
+                facilityId, start, end, PageRequest.of(0, MAX_DASHBOARD_MEASUREMENTS));
+        return newestFirst.stream()
+                .sorted(Comparator.comparing(FacilityCount::getLastUpdatedDateAndTime))
+                .toList();
     }
 
     private DashboardResponse.TodaySummary summarize(List<FacilityCount> measurements) {

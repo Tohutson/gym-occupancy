@@ -36,4 +36,35 @@ build/
 /graphify-out/
 /gym-occupancy-frontend/node_modules/
 /gym-occupancy-frontend/build/
+# Local secrets and environment overrides
 .env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Credentials, private keys, and tunnel configuration
+credentials.json
+*credentials*.json
+*secret*.json
+*token*.txt
+*.pem
+*.key
+*.p12
+*.pfx
+.cloudflared/
+
+# Database dumps and backups (Flyway migrations remain tracked)
+*.dump
+*.backup
+*.bak
+*.sql
+!src/main/resources/db/migration/*.sql
+*.sql.gz
+*.sql.bz2
+*.sql.xz
+*.backup.sql
+*-backup.sql
+backups/
+dumps/

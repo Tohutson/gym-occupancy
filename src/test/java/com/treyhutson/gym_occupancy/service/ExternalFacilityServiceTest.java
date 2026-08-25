@@ -6,32 +6,28 @@ import com.treyhutson.gym_occupancy.model.Facility;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.test.web.client.ExpectedCount.times;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 class ExternalFacilityServiceTest {
     private static final String API_URL = "https://example.test/counts";
 
     @Test
-    void retriesTransientFailuresAndReturnsValidMeasurements() {
+    void returnsValidMeasurementsFromOneRequest() {
         RestTemplate restTemplate = new RestTemplate();
         MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
-        server.expect(times(2), requestTo(API_URL)).andExpect(method(HttpMethod.GET)).andRespond(withServerError());
         server.expect(requestTo(API_URL)).andRespond(withSuccess("""
                 [{"FacilityName":"Operations","LocationName":"RWC Floor 2","LastCount":42,
                   "TotalCapacity":200,"LastUpdatedDateAndTime":"2026-08-24T15:00:00-04:00","IsClosed":false}]
                 """, MediaType.APPLICATION_JSON));
 
-        ExternalFacilityService service = new ExternalFacilityService(restTemplate, retryTemplate(3), properties());
+        ExternalFacilityService service = new ExternalFacilityService(restTemplate, properties());
         Facility facility = service.fetchOccupancyData().get(0);
 
         assertEquals("RWC Floor 2", facility.getLocationName());
@@ -48,7 +44,7 @@ class ExternalFacilityServiceTest {
                   "TotalCapacity":200,"LastUpdatedDateAndTime":"2026-08-24T15:00:00-04:00","IsClosed":false}]
                 """, MediaType.APPLICATION_JSON));
 
-        ExternalFacilityService service = new ExternalFacilityService(restTemplate, retryTemplate(1), properties());
+        ExternalFacilityService service = new ExternalFacilityService(restTemplate, properties());
 
         assertThrows(UpstreamServiceException.class, service::fetchOccupancyData);
         server.verify();
@@ -60,7 +56,4 @@ class ExternalFacilityServiceTest {
         return properties;
     }
 
-    private RetryTemplate retryTemplate(int attempts) {
-        return RetryTemplate.builder().maxAttempts(attempts).fixedBackoff(1).retryOn(UpstreamServiceException.class).build();
-    }
 }

@@ -3,7 +3,6 @@ package com.treyhutson.gym_occupancy.config;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Clock;
@@ -16,18 +15,6 @@ public class HttpClientConfig {
         return builder
                 .connectTimeout(properties.getConnectTimeout())
                 .readTimeout(properties.getReadTimeout())
-                .build();
-    }
-
-    @Bean
-    RetryTemplate occupancyRetryTemplate(OccupancyProperties properties) {
-        return RetryTemplate.builder()
-                .maxAttempts(properties.getRetryAttempts())
-                .exponentialBackoff(
-                        properties.getRetryDelay(),
-                        2.0,
-                        properties.getRetryMaxDelay())
-                .retryOn(UpstreamServiceException.class)
                 .build();
     }
 

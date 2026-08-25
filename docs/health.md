@@ -20,7 +20,7 @@ Send this request:
 GET /actuator/health/readiness
 ```
 
-Readiness checks these components:
+Readiness internally checks these components, while production responses omit component details:
 
 - `db` checks the PostgreSQL connection.
 - `occupancyData` checks the age of the latest successful measurement.

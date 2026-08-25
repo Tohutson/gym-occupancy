@@ -5,7 +5,7 @@ Gym Occupancy Tracker collects facility occupancy measurements and shows them in
 ## Features
 
 - Collects occupancy data on a configurable schedule.
-- Retries temporary upstream failures with bounded exponential backoff.
+- Polls the upstream service on a bounded five-minute schedule.
 - Stores UTC timestamps and rejects duplicate measurements.
 - Compares the current count with a same-weekday 30-minute baseline.
 - Shows measured occupancy, a typical curve, and a historical quartile range.

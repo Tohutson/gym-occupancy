@@ -57,6 +57,20 @@ public interface FacilityCountRepository extends JpaRepository<FacilityCount, Lo
             @Param("end") Instant end
     );
 
+    @Query("""
+            SELECT fc FROM FacilityCount fc
+            WHERE fc.facilityId = :facilityId
+              AND fc.lastUpdatedDateAndTime >= :start
+              AND fc.lastUpdatedDateAndTime < :end
+            ORDER BY fc.lastUpdatedDateAndTime DESC
+            """)
+    List<FacilityCount> findRecentHistoryForFacility(
+            @Param("facilityId") String facilityId,
+            @Param("start") Instant start,
+            @Param("end") Instant end,
+            Pageable pageable
+    );
+
     @Query("SELECT fc FROM FacilityCount fc WHERE fc.facilityId = :facilityId ORDER BY fc.lastUpdatedDateAndTime DESC")
     List<FacilityCount> findLatestForFacility(@Param("facilityId") String facilityId, Pageable pageable);
 

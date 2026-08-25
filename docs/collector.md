@@ -6,7 +6,7 @@ The collector requests measurements from one upstream occupancy endpoint. The co
 
 1. The scheduler waits for `occupancy.initial-delay`.
 2. The HTTP client requests the configured endpoint.
-3. The client retries a transient request failure. The delay increases after each failed request.
+3. The client makes one bounded request. A failure waits for the next scheduled collection.
 4. The collector validates each facility response.
 5. The collector converts the source timestamp to a UTC instant.
 6. The collector writes the response in one database transaction.
@@ -36,13 +36,12 @@ Do not commit the upstream API key or the database password.
 | `OCCUPANCY_SOURCE_ZONE` | `America/New_York` | Interprets a source timestamp that has no UTC offset. |
 | `OCCUPANCY_CONNECT_TIMEOUT` | `5s` | Limits the TCP connection wait. |
 | `OCCUPANCY_READ_TIMEOUT` | `10s` | Limits the response wait. |
-| `OCCUPANCY_RETRY_ATTEMPTS` | `3` | Limits the total request attempts. |
-| `OCCUPANCY_RETRY_DELAY` | `1s` | Sets the first retry delay. |
-| `OCCUPANCY_RETRY_MAX_DELAY` | `10s` | Limits the exponential retry delay. |
-| `OCCUPANCY_POLL_DELAY` | `10m` | Sets the delay after one collection completes. |
+| `OCCUPANCY_POLL_DELAY` | `5m` | Sets the delay after one collection completes. Values below five minutes are rejected at startup. |
 | `OCCUPANCY_RETENTION` | `730d` | Sets the measurement retention period. |
 
-Use duration values that Spring Boot can parse. Examples are `500ms`, `30s`, `10m`, and `2h`.
+Use duration values that Spring Boot can parse. Examples are `30s`, `5m`, and `2h`.
+
+The scheduler uses a fixed delay, so executions do not overlap. It also checks the latest successful collection time before calling the upstream service, preventing a quick application restart from producing a duplicate request burst.
 
 ## Database migrations
 

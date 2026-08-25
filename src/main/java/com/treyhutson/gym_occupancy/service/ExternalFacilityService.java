@@ -4,7 +4,6 @@ import com.treyhutson.gym_occupancy.config.OccupancyProperties;
 import com.treyhutson.gym_occupancy.config.UpstreamServiceException;
 import com.treyhutson.gym_occupancy.model.Facility;
 import org.springframework.http.ResponseEntity;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
@@ -15,13 +14,14 @@ import java.util.List;
 
 @Service
 public class ExternalFacilityService {
+    private static final int MAX_FACILITIES = 100;
+    private static final int MAX_NAME_LENGTH = 255;
+
     private final RestTemplate restTemplate;
-    private final RetryTemplate retryTemplate;
     private final OccupancyProperties properties;
 
-    public ExternalFacilityService(RestTemplate restTemplate, RetryTemplate retryTemplate, OccupancyProperties properties) {
+    public ExternalFacilityService(RestTemplate restTemplate, OccupancyProperties properties) {
         this.restTemplate = restTemplate;
-        this.retryTemplate = retryTemplate;
         this.properties = properties;
     }
 
@@ -29,7 +29,7 @@ public class ExternalFacilityService {
         if (!StringUtils.hasText(properties.getApiUrl())) {
             throw new UpstreamServiceException("OCCUPANCY_API_URL is not configured");
         }
-        return retryTemplate.execute(context -> fetchOnce());
+        return fetchOnce();
     }
 
     private List<Facility> fetchOnce() {
@@ -38,6 +38,9 @@ public class ExternalFacilityService {
             Facility[] body = response.getBody();
             if (body == null || body.length == 0) {
                 throw new UpstreamServiceException("The occupancy service returned no facilities");
+            }
+            if (body.length > MAX_FACILITIES) {
+                throw new UpstreamServiceException("The occupancy service returned too many facilities");
             }
             List<Facility> facilities = Arrays.asList(body);
             facilities.forEach(this::validate);
@@ -51,6 +54,8 @@ public class ExternalFacilityService {
         if (facility == null
                 || !StringUtils.hasText(facility.getLocationName())
                 || !StringUtils.hasText(facility.getLastUpdated())
+                || facility.getLocationName().length() > MAX_NAME_LENGTH
+                || (facility.getFacilityName() != null && facility.getFacilityName().length() > MAX_NAME_LENGTH)
                 || facility.getLastCount() < 0
                 || facility.getTotalCapacity() < 0
                 || (facility.getTotalCapacity() > 0 && facility.getLastCount() > facility.getTotalCapacity())) {

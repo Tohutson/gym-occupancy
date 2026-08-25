@@ -48,7 +48,7 @@ class DashboardServiceTest {
         FacilityCount current = measurement("2026-08-24T19:55:00Z", 64);
         current.setRecordedAt(Instant.parse("2026-08-24T19:56:00Z"));
         when(repository.findLatestForFacility(eq("RWC Floor 2"), any(Pageable.class))).thenReturn(List.of(current));
-        when(repository.findHistoryForFacility(eq("RWC Floor 2"), any(), any())).thenReturn(List.of(
+        when(repository.findRecentHistoryForFacility(eq("RWC Floor 2"), any(), any(), any(Pageable.class))).thenReturn(List.of(
                 measurement("2026-08-24T18:00:00Z", 40), current));
         when(baselineService.analyze(current)).thenReturn(analysis());
 
@@ -75,6 +75,14 @@ class DashboardServiceTest {
     @Test
     void rejectsAnUnsupportedRange() {
         assertThrows(IllegalArgumentException.class, () -> DashboardRange.fromQuery("30d"));
+    }
+
+    @Test
+    void rejectsInvalidFacilityIdentifiersBeforeQuerying() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.dashboard("gym\nheader", DashboardRange.TODAY));
+        assertThrows(IllegalArgumentException.class,
+                () -> service.dashboard("x".repeat(256), DashboardRange.TODAY));
     }
 
     private HistoricalAnalysis analysis() {
