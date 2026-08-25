@@ -20,7 +20,7 @@ Use the range control to select Today, 24 hours, or 7 days.
 
 The Today view shows these series:
 
-- The measured occupancy line.
+- The measured occupancy line with one visible marker per stored measurement.
 - The typical weekday line.
 - The historical lower-to-upper quartile range.
 
@@ -28,7 +28,7 @@ The 24-hour and 7-day views show measured occupancy only. The chart inserts a br
 
 ## Local development
 
-The Create React App development server proxies `/api` requests to `http://localhost:8080`.
+The React development server proxies `/api` requests to `http://localhost:8080`.
 
 1. Start the Spring Boot application.
 2. Run `npm install` in `gym-occupancy-frontend`.
