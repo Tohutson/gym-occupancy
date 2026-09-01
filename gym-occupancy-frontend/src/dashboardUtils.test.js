@@ -5,13 +5,27 @@ test("inserts a null point when measurements have a long gap", () => {
     range: "HOURS_24",
     measurements: [
       { time: "2026-08-24T10:00:00Z", count: 10 },
-      { time: "2026-08-24T11:00:00Z", count: 20 },
+      { time: "2026-08-24T11:01:00Z", count: 20 },
     ],
     typicalDay: [],
   });
 
   expect(data).toHaveLength(3);
   expect(data[1].count).toBeNull();
+});
+
+test("keeps measurements connected when they are 60 minutes apart", () => {
+  const data = buildChartData({
+    range: "HOURS_24",
+    measurements: [
+      { time: "2026-08-24T10:00:00Z", count: 10 },
+      { time: "2026-08-24T11:00:00Z", count: 20 },
+    ],
+    typicalDay: [],
+  });
+
+  expect(data).toHaveLength(2);
+  expect(data.map((point) => point.count)).toEqual([10, 20]);
 });
 
 test("interpolates the typical curve at actual measurement times", () => {

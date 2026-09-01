@@ -24,7 +24,7 @@ The Today view shows these series:
 - The typical weekday line.
 - The historical lower-to-upper quartile range.
 
-The 24-hour and 7-day views show measured occupancy only. The chart inserts a break when two measurements are more than 25 minutes apart. The break prevents the chart from representing missing data as a continuous measurement.
+The 24-hour and 7-day views show measured occupancy only. The chart inserts a break when two measurements are more than 60 minutes apart. The break prevents the chart from representing missing data as a continuous measurement.
 
 ## Local development
 
