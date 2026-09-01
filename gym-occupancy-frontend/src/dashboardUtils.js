@@ -1,4 +1,4 @@
-const GAP_THRESHOLD_MS = 60 * 60 * 1000;
+const GAP_THRESHOLD_MS = 75 * 60 * 1000;
 
 function baselineAt(timestamp, baseline) {
   if (!baseline.length) return null;
